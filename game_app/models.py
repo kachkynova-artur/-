@@ -1,4 +1,3 @@
-
 from django.db import models
 
 class Player(models.Model):
@@ -8,7 +7,7 @@ class Player(models.Model):
         return self.name
 
 class GameResult(models.Model):
-    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="results")  # добавлен related_name
     number_to_guess = models.IntegerField()
     attempts = models.IntegerField()
     success = models.BooleanField()

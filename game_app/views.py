@@ -34,6 +34,7 @@ def player_delete(request, pk):
     player.delete()
     return redirect('player_list')
 
+
 # --- CRUD Результатов ---
 def result_list(request):
     results = GameResult.objects.all()
@@ -55,30 +56,42 @@ def result_delete(request, pk):
     result.delete()
     return redirect('result_list')
 
+
 # --- Игра "Угадай число" ---
 def play_game(request, player_id):
     player = get_object_or_404(Player, pk=player_id)
-    message = ''
-    if 'number_to_guess' not in request.session:
-        request.session['number_to_guess'] = random.randint(1, 100)
-        request.session['attempts'] = 0
-
-    if request.method == 'POST':
+    
+    # Пытаемся найти последнюю незавершённую игру
+    result = GameResult.objects.filter(player=player, success=False).order_by('-date').first()
+    
+    # Если такой игры нет, создаём новую
+    if not result:
+        result = GameResult.objects.create(
+            player=player,
+            number_to_guess=random.randint(1, 100),
+            attempts=0,
+            success=False
+        )
+    
+    feedback = ""
+    
+    if request.method == "POST":
         guess = int(request.POST['guess'])
-        request.session['attempts'] += 1
-        if guess == request.session['number_to_guess']:
-            GameResult.objects.create(
-                player=player,
-                number_to_guess=request.session['number_to_guess'],
-                attempts=request.session['attempts'],
-                success=True
-            )
-            message = f"Поздравляю! Вы угадали число за {request.session['attempts']} попыток."
-            del request.session['number_to_guess']
-            del request.session['attempts']
-        elif guess < request.session['number_to_guess']:
-            message = "Слишком маленькое!"
+        result.attempts += 1
+        
+        if guess == result.number_to_guess:
+            feedback = "Угадал(а)!"
+            result.success = True
+        elif guess < result.number_to_guess:
+            feedback = "Больше!"
         else:
-            message = "Слишком большое!"
-
-    return render(request, 'game_app/play_game.html', {'player': player, 'message': message})
+            feedback = "Меньше!"
+        
+        result.save()
+    
+    context = {
+        'player': player,
+        'feedback': feedback,
+        'attempts': result.attempts
+    }
+    return render(request, 'game_app/play_game.html', context)
