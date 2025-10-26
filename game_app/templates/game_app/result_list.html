@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Результаты</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+    <h1>Результаты</h1>
+    <ul class="list-group">
+        {% for result in results %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ result.player.name }} - {{ result.number_to_guess }} - {{ result.attempts }} попыток - 
+            {{ "Угадал" if result.success else "Не угадал" }}
+            <span>
+                <a class="btn btn-sm btn-warning" href="{% url 'result_update' result.id %}">Редактировать</a>
+                <a class="btn btn-sm btn-danger" href="{% url 'result_delete' result.id %}">Удалить</a>
+            </span>
+        </li>
+        {% endfor %}
+    </ul>
+    <a class="btn btn-secondary mt-3" href="{% url 'player_list' %}">Назад к игрокам</a>
+</div>
+</body>
+</html>
+
